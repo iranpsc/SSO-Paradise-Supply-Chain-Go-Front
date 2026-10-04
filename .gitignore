@@ -1,0 +1,33 @@
+# Build and test output
+/bin/
+/dist/
+*.exe
+*.exe~
+*.test
+*.out
+/coverage/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+go.work
+go.work.sum
+
+# Editor and OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Runtime data and frontend build output
+# Unanchored so nested runtimes (e.g. web/var/app.key) are excluded too.
+var/
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+playwright-report/
+test-results/
+/deploy/secrets/
+/deploy/production.env
