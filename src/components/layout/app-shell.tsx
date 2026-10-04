@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { AmbientParticles } from "./ambient-particles";
 import { LegacyHeader } from "./legacy-header";
 import { LegacyFooter } from "./legacy-footer";
+import { LegacyFlash } from "./legacy-flash";
 import { clearValidation, localizeValidation } from "@/lib/persian-validation";
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -99,6 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 : "content-foreground mx-auto max-w-6xl"
             }
           >
+            <LegacyFlash />
             {children}
           </div>
         </div>

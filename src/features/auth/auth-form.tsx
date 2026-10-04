@@ -37,14 +37,14 @@ const paths: Record<Mode, string> = {
 };
 export function AuthForm({ mode: initialMode }: { mode: Mode }) {
   const pathname = usePathname();
+  const params = useSearchParams();
   const mode: Mode =
     pathname === "/login"
       ? "login"
       : pathname === "/register"
         ? "register"
-        : initialMode;
+        : initialMode === "reset" && !params.get("token") ? "forgot" : initialMode;
   const router = useRouter();
-  const params = useSearchParams();
   const { setUser } = useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -181,9 +181,9 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
       }
       if (result.data) {
         setUser(result.data);
-        const intended=oauthReturnTo(params.get("return_to"));
+        const intended=oauthReturnTo(params.get("return_to") ?? sessionStorage.getItem("sso:return_to"));
  if(intended && !result.data.email_verified_at)sessionStorage.setItem("sso:return_to",intended);
- if(result.data.email_verified_at && intended)window.location.assign(intended);
+ if(result.data.email_verified_at && intended){sessionStorage.removeItem("sso:return_to");window.location.assign(intended);}
  else router.replace(result.data.email_verified_at ? "/home" : "/email/verify");
       } else {
         setNotice(result.message);
