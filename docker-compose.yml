@@ -1,0 +1,26 @@
+# Independent Dokploy frontend; the API is reached through API_ORIGIN.
+services:
+  web:
+    build:
+      context: .
+      args:
+        API_ORIGIN: ${API_ORIGIN:?Set API_ORIGIN to the reachable backend URL}
+        PUBLIC_URL: ${PUBLIC_URL:?Set PUBLIC_URL to the frontend HTTPS URL}
+        NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:?Set WalletConnect project ID}
+        NPM_CONFIG_REGISTRY: ${NPM_CONFIG_REGISTRY:-https://registry.npmjs.org/}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_ORIGIN: ${API_ORIGIN:?Set API_ORIGIN}
+    expose: ["3000"]
+    networks: [dokploy-network]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  dokploy-network:
+    external: true
