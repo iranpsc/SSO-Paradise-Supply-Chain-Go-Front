@@ -1,9 +1,11 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
 COPY . ./
 ARG API_ORIGIN=http://api:8080
+ARG PUBLIC_URL
+ENV PUBLIC_URL=$PUBLIC_URL
 ARG NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 ENV API_ORIGIN=$API_ORIGIN
 ENV NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=$NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
