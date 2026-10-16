@@ -5,7 +5,7 @@ services:
       context: .
       args:
         API_ORIGIN: ${API_ORIGIN:?Set API_ORIGIN to the reachable backend URL}
-        PUBLIC_URL: ${PUBLIC_URL:?Set PUBLIC_URL to the frontend HTTPS URL}
+        PUBLIC_URL: ${PUBLIC_URL:?Set PUBLIC_URL to the frontend public URL}
         NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: ${NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID:?Set WalletConnect project ID}
         NPM_CONFIG_REGISTRY: ${NPM_CONFIG_REGISTRY:-https://registry.npmjs.org/}
     restart: unless-stopped

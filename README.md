@@ -28,6 +28,8 @@ Browser tests start a separate Go checkout and create a disposable MySQL test da
 
 Build from this repository root, passing `API_ORIGIN`, `PUBLIC_URL` and `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` as build arguments. Next.js captures the proxy destination and HTTPS header policy during build; rebuild when changing them. An HTTPS `PUBLIC_URL` enables HSTS. Run on port 3000 with network access to the Go API.
 
+For HTTP-only production, keep `NODE_ENV=production`, set `PUBLIC_URL=http://dev-accounts.irpsc.com` and `API_ORIGIN=http://apidev-accounts.irpsc.com`, and rebuild the frontend. The backend must keep `APP_ENV=production` and explicitly set `ALLOW_INSECURE_HTTP=true` with the same HTTP PUBLIC_URL. Disable HTTPS redirects and HSTS at the deployment proxy; browser HSTS already stored or inherited from a parent domain can still force HTTPS. HTTP does not encrypt passwords or session cookies. SMTP TLS and external-service HTTPS remain independently configured.
+
 ## Upstream behavior
 
 External or public OAuth clients use `/authorize` to approve or deny a session-bound request; only confidential internal clients skip consent. Verification email is sent manually, with a 60-second cooldown retained across reloads. Personal documents accept JPEG, PNG and WebP up to 2 MiB each; avatars retain their 1 MiB limit.
