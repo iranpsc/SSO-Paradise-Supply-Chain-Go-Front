@@ -135,7 +135,11 @@ The browser layout checks include widths of **390**, **768** and **1440** pixels
 
 Build from this frontend repository root, providing `API_ORIGIN`, `PUBLIC_URL` and `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` as build arguments according to `Dockerfile` and your deployment environment. The app serves port **3000** and needs network access to the Go API. Next.js captures the proxy destination and HTTPS header policy **at build time**: rebuild the image when these values change. HTTPS `PUBLIC_URL` enables HSTS.
 
-Use the provided `docker-compose.yml` as a starting point and consult the backend's `compose.yaml`, `compose.dokploy.yaml` and production runbook for full-stack deployment. Production must use HTTPS, stable securely provisioned keys, TLS SMTP and the backend worker where asynchronous mail is enabled. Never use development-generated keys or fixture accounts in production.
+Use the provided `docker-compose.yml` as a starting point and consult the backend's `compose.yaml`, `compose.dokploy.yaml` and production runbook for full-stack deployment. Production uses HTTPS by default; the explicit HTTP-only option is described below. Keep stable securely provisioned keys, TLS SMTP and the backend worker where asynchronous mail is enabled. Never use development-generated keys or fixture accounts in production.
+
+### HTTP-only production
+
+For HTTP-only production, keep `NODE_ENV=production`, set `PUBLIC_URL=http://dev-accounts.irpsc.com` and `API_ORIGIN=http://apidev-accounts.irpsc.com`, and rebuild the frontend. The backend must keep `APP_ENV=production` and explicitly set `ALLOW_INSECURE_HTTP=true` with the same HTTP PUBLIC_URL. Disable HTTPS redirects and HSTS at the deployment proxy; browser HSTS already stored or inherited from a parent domain can still force HTTPS. HTTP does not encrypt passwords or session cookies. SMTP TLS and external-service HTTPS remain independently configured.
 
 ## Related backend documentation
 
