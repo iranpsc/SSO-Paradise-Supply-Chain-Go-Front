@@ -45,7 +45,16 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
         ? "register"
         : initialMode === "reset" && !params.get("token") ? "forgot" : initialMode;
   const router = useRouter();
-  const { setUser } = useSession();
+  const {
+    user,
+    loading: sessionLoading,
+    error: sessionError,
+    refresh,
+    setUser,
+  } = useSession();
+  // Check the existing session before showing guest-only entry forms. Once
+  // admitted as a guest, the form/wallet flow owns its post-login navigation.
+  const [entryAllowed, setEntryAllowed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -69,6 +78,35 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
   const entryInvalid =
     (mode === "register" || mode === "login") &&
     (Object.keys(validation).length > 0 || Object.keys(fields).length > 0);
+  useEffect(() => {
+    const intended = oauthReturnTo(params.get("return_to"));
+    if (intended) sessionStorage.setItem("sso:return_to", intended);
+  }, [params]);
+  useEffect(() => {
+    if (
+      entryAllowed ||
+      (mode !== "login" && mode !== "register") ||
+      sessionLoading ||
+      sessionError
+    ) return;
+    if (!user) {
+      setEntryAllowed(true);
+      return;
+    }
+    const intended = oauthReturnTo(
+      params.get("return_to") ?? sessionStorage.getItem("sso:return_to"),
+    );
+    if (!user.email_verified_at) {
+      if (intended) sessionStorage.setItem("sso:return_to", intended);
+      router.replace("/email/verify");
+    } else if (intended) {
+      sessionStorage.removeItem("sso:return_to");
+      // OAuth may redirect outside the central frontend; use document navigation.
+      window.location.replace(intended);
+    } else {
+      router.replace("/home");
+    }
+  }, [entryAllowed, mode, sessionLoading, sessionError, user, params, router]);
   function fieldError(name: keyof RegistrationValues) {
     return fields[name] || (touched[name] ? validation[name] : undefined);
   }
@@ -201,6 +239,23 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
     } finally {
       setBusy(false);
     }
+  }
+  if ((mode === "login" || mode === "register") && !entryAllowed) {
+    if (sessionError) {
+      return (
+        <div className="panel space-y-5" role="alert">
+          <p>{sessionError}</p>
+          <button className="primary" data-testid="session-retry" onClick={() => void refresh()}>
+            تلاش دوباره
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="panel animate-pulse" role="status">
+        در حال بررسی نشست کاربری…
+      </div>
+    );
   }
   return (
     <div className="auth-stage">

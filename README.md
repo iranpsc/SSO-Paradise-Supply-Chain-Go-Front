@@ -102,7 +102,8 @@ Do not commit `.env.local`, passwords, private keys, production credentials, rea
 
 The frontend provides Persian RTL account flows for registration, email/username login, remember-me, password confirmation/reset/change, signed email verification, profile editing, avatar/private-document uploads, MetaMask/WalletConnect sign-in and wallet linking, and OAuth authorization/consent. The backend implements and enforces the corresponding identity and authorization rules.
 
-- External/public OAuth clients require consent via `/authorize`; only eligible confidential first-party clients skip consent. The OAuth password grant is disabled.
+- External/public OAuth clients initially require consent via `/authorize`. Like Laravel Passport, eligible confidential first-party clients and users with active access tokens for the same client covering the requested scopes skip this screen; `prompt=consent` forces confirmation. The OAuth password grant is disabled.
+- Login preserves the backend's local OAuth `return_to` request in tab session storage, including across registration, wallet login and email verification. Only a same-origin `/oauth/authorize` path is accepted; the backend validates the client callback again before issuing a code. This supports separate API and frontend domains without sharing backend flash cookies.
 - Signed verification links and session/cookie rules are validated by the backend. Do not bypass these flows in UI code.
 - Verification email is manually requested, with a 60-second cooldown retained across reloads.
 - Personal documents accept JPEG, PNG and WebP up to **2 MiB each**; avatars are limited to **1 MiB**. Client-side checks complement, never replace, server-side validation.
