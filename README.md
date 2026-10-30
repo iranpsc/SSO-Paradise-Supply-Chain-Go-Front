@@ -80,7 +80,20 @@ From the frontend directory:
 
 ```bash
 npm ci
-cp .env.example .env.local
+```
+
+Copy `.env.example` to `.env.local` and set the values for your environment:
+
+```dotenv
+API_ORIGIN=http://127.0.0.1:8080
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=YOUR_WALLETCONNECT_PROJECT_ID
+```
+
+`API_ORIGIN` is the Go API address reachable by the Next.js server. `PUBLIC_URL` in the backend must match the browser-visible frontend origin exactly (`http://localhost:3000` here). Do not substitute `127.0.0.1` for `localhost` in only one of these browser-facing settings; cookies and OAuth redirects depend on consistent origins. The WalletConnect project ID is a public identifier, not a secret; use your own project configuration where required.
+
+Start the development server:
+
+```bash
 npm run dev
 ```
 
