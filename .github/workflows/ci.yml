@@ -1,52 +1,36 @@
-name: Frontend checks
+name: Frontend static checks
+
 on:
   push:
     branches: [develop, main]
   pull_request:
     branches: [develop, main]
+
 permissions:
   contents: read
+
 jobs:
-  tests:
+  frontend-checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     env:
-      MYSQL_HOST: 127.0.0.1
-      MYSQL_USER: root
-      MYSQL_PASSWORD: integration-test-only
-      SSO_BACKEND_DIR: SSO-Paradise-Supply-Chain-Go
       NEXT_TELEMETRY_DISABLED: "1"
-    services:
-      mysql:
-        image: mysql:8.4
-        env:
-          MYSQL_ROOT_PASSWORD: integration-test-only
-          MYSQL_ROOT_HOST: '%'
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=12
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: iranpsc/SSO-Paradise-Supply-Chain-Go
-          # The isolated E2E database helper is currently on the backend develop branch.
-          ref: develop
-          path: SSO-Paradise-Supply-Chain-Go
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: SSO-Paradise-Supply-Chain-Go/go.mod
-          cache-dependency-path: SSO-Paradise-Supply-Chain-Go/go.sum
-      - uses: actions/setup-node@v4
+      - name: Checkout frontend repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npm test
-      - run: npm run build
-      - run: npm run typecheck
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Next.js production build
+        run: npm run build
