@@ -1,97 +1,82 @@
-# Paradise Supply Chain SSO — Web Frontend
+# SSO Paradise Supply Chain — Frontend
 
-This repository contains the independent browser application for the Paradise Supply Chain single sign-on (SSO) service. It provides the Persian, right-to-left user experience for the Go identity API: sign-in, registration, account management, wallet authentication, email verification, and OAuth consent.
+The independent, Persian RTL **Next.js frontend** for [SSO Paradise Supply Chain (Go)](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go). It preserves the pages, visual assets and interaction patterns of the original `web` application while keeping the Go API in a separate repository.
 
-The frontend is a separate service from the API. It does not own user credentials, issue OAuth tokens, or connect directly to MySQL. It obtains the current account and performs authentication actions through the Go backend. The backend repository is [SSO-Paradise-Supply-Chain-Go](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go).
+> This repository contains the user interface, not the identity provider's authoritative credential, token, session or database logic. Run the sibling Go service for end-to-end development.
 
 ## Contents
 
-- [What the application does](#what-the-application-does)
-- [How SSO works](#how-sso-works)
-- [Technology stack](#technology-stack)
-- [Repositories and prerequisites](#repositories-and-prerequisites)
-- [Local development](#local-development)
-- [Configuration reference](#configuration-reference)
-- [Tests and quality checks](#tests-and-quality-checks)
-- [Production build and deployment](#production-build-and-deployment)
-- [Security and compatibility notes](#security-and-compatibility-notes)
-- [Related repositories](#related-repositories)
+- [Architecture](#architecture)
+- [Requirements](#requirements)
+- [Quick start](#quick-start)
+- [Configuration](#configuration)
+- [Features and security boundaries](#features-and-security-boundaries)
+- [Development and validation](#development-and-validation)
+- [Docker and deployment](#docker-and-deployment)
+- [Related backend documentation](#related-backend-documentation)
+- [Contributing and security](#contributing-and-security)
 
-## What the application does
+## Architecture
 
-- Provides Persian RTL login and registration pages, password recovery, verification, and account screens.
-- Offers account and personal-information management, wallet linking, and session controls.
-- Supports MetaMask and WalletConnect entry points using server-issued wallet challenges; the API verifies signatures and consumes nonces.
-- Presents OAuth consent when the backend requires it and resumes an authorization request after the user signs in.
-- Preserves browser-facing routes used by the earlier Laravel application where the Go backend implements the corresponding compatibility contract.
-- Redirects an authenticated visitor from the root page to the account dashboard and an unauthenticated visitor to the sign-in page, after checking the API session.
+```text
+Browser (Persian / RTL)
+    |
+    v
+Next.js frontend :3000
+    | same-origin /api/*, /oauth/* and signed verification requests
+    v
+Go SSO API :8080
+    |-- MySQL (authoritative credentials, sessions, expiry and revocation)
+    |-- Redis (optional cache)
+    |-- SMTP / development file mail (worker for asynchronous delivery)
+    `-- OAuth, wallet and Laravel compatibility integrations
+```
 
-The frontend is a presentation and browser-integration layer. Authentication decisions, password verification, authorization-code creation, token validation, consent policy, persistence, and revocation remain responsibilities of the Go API.
+The frontend proxies requests to the Go service to preserve the browser-facing origin and cookies. It can be built independently, but functional login, registration and browser integration tests require the backend. Do not store authentication tokens in browser `localStorage`.
 
-## How SSO works
+## Technology
 
-1. A user opens a client application and chooses its SSO sign-in option. The client redirects the browser to the Go API's OAuth authorization endpoint with a registered callback, `state`, scopes, and PKCE parameters when required.
-2. The API sends an unauthenticated visitor to this frontend while preserving the pending authorization request. The frontend calls the API through its same-origin proxy, so the browser does not need to call a cross-origin API directly for ordinary account actions.
-3. After the user signs in, this application checks the account state and resumes the validated authorization request. If the API requires consent, the frontend displays the decision screen.
-4. The API redirects the browser to the exact registered callback with a one-time authorization code. The client validates `state`, exchanges the code (and PKCE verifier, where applicable), and creates its own local session.
-
-Signing in to the central SSO establishes a session with the identity service. It does not automatically sign the user into every client application; each client must complete and validate its own OAuth callback.
-
-## Technology stack
-
-| Area | Technology |
+| Component | Version / role |
 | --- | --- |
-| Web framework | Next.js 16 App Router |
-| UI runtime | React 19 and TypeScript |
-| Styling | Tailwind CSS 4 plus the project's legacy-compatible styles |
-| Authentication API | Go SSO HTTP API, accessed through Next.js rewrites and same-origin requests |
-| Wallet integration | MetaMask's browser provider and WalletConnect Ethereum provider |
-| Browser testing | Playwright with Chromium |
-| Production packaging | Next.js standalone output in a Node.js 22 container |
+| Next.js | 16.3.8 |
+| React / React DOM | 19.3.0 |
+| TypeScript | 5.x |
+| Tailwind CSS | 4.3.3 |
+| WalletConnect Ethereum Provider | 2.23.10 |
+| Playwright | Browser / end-to-end tests |
+| Prettier | Formatting |
 
-The user interface is Persian-first and uses RTL page layout. TypeScript types, route components, API wrappers, session state, and feature screens are under `src/`. Static fonts, images, and wallet logos are under `public/`.
+Refer to `package.json` and `package-lock.json` for the authoritative installed versions.
 
-## Repositories and prerequisites
+## Requirements
 
-Clone the backend and frontend as sibling directories when you want the complete local SSO experience or need to run the browser integration tests:
+- Node.js **22.12+** and npm (use `npm ci` for reproducible installation).
+- A running [Go backend](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go) for functional flows.
+- For full backend/browser integration tests: the Go toolchain specified in the backend `go.mod`, MySQL **8.0.13+ or 9.x**, and a disposable test database. Redis is optional.
+
+## Quick start
+
+Clone both repositories as siblings:
 
 ```bash
 git clone https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go.git
 git clone https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go-Front.git
 ```
 
-The frontend alone requires:
+### 1. Start the backend
 
-- Node.js 22.12 or newer and npm.
-- A reachable Go SSO API for interactive local use.
-- A WalletConnect project ID if you want to exercise WalletConnect; MetaMask sign-in requires its browser extension.
-
-Running the Playwright integration suite additionally requires Go, a disposable MySQL instance, and the sibling Go backend checkout. Its database account must be allowed to create and drop test databases. Never point the browser suite at production or a shared user database.
-
-## Local development
-
-### 1. Start the Go backend
-
-Follow the backend [README](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go#local-setup). Configure a dedicated local MySQL database and set the backend's `PUBLIC_URL` to the exact frontend origin used by the browser. For the commands below that origin is `http://localhost:3000`.
-
-From the backend directory, after preparing `.env` and the local database:
+Configure `SSO-Paradise-Supply-Chain-Go/.env` using its `.env.example`. Select a **separate Go database**; do not point migrations at a live Laravel database. Set `PUBLIC_URL=http://127.0.0.1:3000` to match the browser origin used below. From the backend directory:
 
 ```bash
 go run ./cmd/migrate
 go run ./cmd/api
 ```
 
-If SMTP delivery is configured as an asynchronous queue, start the worker in another terminal:
+Check `http://127.0.0.1:8080/healthz`. Development email defaults to local files under `var/mail`; for asynchronous SMTP delivery also run `go run ./cmd/worker`. Consult the backend README and production runbook before enabling staging or production.
 
-```bash
-go run ./cmd/worker
-```
+### 2. Start the frontend
 
-The API's health endpoint should respond at `http://127.0.0.1:8080/healthz`. Opening the backend root displays its embedded Swagger UI.
-
-### 2. Configure and start the frontend
-
-From this repository's root:
+From the frontend directory:
 
 ```bash
 npm ci
@@ -112,88 +97,76 @@ Start the development server:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). The root route checks the current API session and takes the visitor to the dashboard or sign-in page. The backend API should remain running in a separate terminal.
+In PowerShell, replace the copy command with `Copy-Item .env.example .env.local`. Set the frontend `.env.local` `PUBLIC_URL=http://127.0.0.1:3000` and open **http://127.0.0.1:3000/login**. The frontend's `API_ORIGIN` defaults to `http://127.0.0.1:8080`. Keep the backend `PUBLIC_URL` consistent with the actual browser origin; `localhost` and `127.0.0.1` are not interchangeable for origin-sensitive flows.
 
-PowerShell equivalents for copying the environment sample and setting the API origin are:
+## Configuration
 
-```powershell
-Copy-Item .env.example .env.local
-$env:API_ORIGIN = 'http://127.0.0.1:8080'
-npm run dev
-```
-
-For persistent local settings, edit `.env.local` rather than relying on a temporary terminal variable.
-
-## Configuration reference
+Use `.env.example` as the canonical frontend template:
 
 | Variable | Purpose |
 | --- | --- |
-| `API_ORIGIN` | Go API origin used by the Next.js proxy for `/api/*`, OAuth, wallet, storage, and Laravel-compatible routes. It must be reachable from the Next.js process or container. |
-| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | Public WalletConnect project identifier used by the browser integration. |
-| `PUBLIC_URL` | Build-time frontend public origin used by the production security-header policy. An HTTPS value enables HSTS. |
-| `NEXT_DIST_DIR` | Optional Next.js output directory override, primarily used to isolate browser-test output. |
+| `API_ORIGIN` | Reachable Go API origin for server-side proxying; default `http://127.0.0.1:8080` |
+| `PUBLIC_URL` | Exact browser-facing frontend origin; align with the backend's `PUBLIC_URL` |
+| `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project identifier exposed to the client; use an authorized project ID |
 
-Next.js supplies `NODE_ENV` for development and production commands; it normally should not be set manually for local development. The full backend configuration—including MySQL, Redis, cookies, signing keys, mail, and API public URL—is documented in the backend's `.env.example` and README.
+Do not commit `.env.local`, passwords, private keys, production credentials, real user data or test-generated secrets. `NEXT_PUBLIC_*` values are public by design. Backend-only configuration (MySQL, Redis, mail, OAuth keys, Laravel import) belongs in the backend repository.
 
-## Tests and quality checks
+## Features and security boundaries
 
-Available frontend commands are:
+The frontend provides Persian RTL account flows for registration, email/username login, remember-me, password confirmation/reset/change, signed email verification, profile editing, avatar/private-document uploads, MetaMask/WalletConnect sign-in and wallet linking, and OAuth authorization/consent. The backend implements and enforces the corresponding identity and authorization rules.
 
-```bash
-npm ci
-npm run build
-npm run typecheck
-npm test
-```
+- External/public OAuth clients initially require consent via `/authorize`. Like Laravel Passport, eligible confidential first-party clients and users with active access tokens for the same client covering the requested scopes skip this screen; `prompt=consent` forces confirmation. The OAuth password grant is disabled.
+- Login preserves the backend's local OAuth `return_to` request in tab session storage, including across registration, wallet login and email verification. Only a same-origin `/oauth/authorize` path is accepted; the backend validates the client callback again before issuing a code. This supports separate API and frontend domains without sharing backend flash cookies.
+- Signed verification links and session/cookie rules are validated by the backend. Do not bypass these flows in UI code.
+- Verification email is manually requested, with a 60-second cooldown retained across reloads.
+- Personal documents accept JPEG, PNG and WebP up to **2 MiB each**; avatars are limited to **1 MiB**. Client-side checks complement, never replace, server-side validation.
+- Do not log access/refresh tokens, cookies, wallet signatures, nonces, credentials or private documents. Do not persist tokens in `localStorage`.
+- Preserve same-origin proxy behavior and cookie handling when changing Next.js rewrites, headers or deployment topology.
 
-The Playwright configuration starts an isolated Go API on port `8180` and a separate Next.js test server on port `3100`. It creates a uniquely named `paradise_e2e_*` MySQL database, uses synthetic accounts and local test mail, then removes the test database during teardown. Set `SSO_BACKEND_DIR` if the backend checkout is not at `../SSO-Paradise-Supply-Chain-Go`.
-
-Example for a local disposable MySQL server (adapt credentials to your test instance):
+## Development and validation
 
 ```bash
-MYSQL_HOST=127.0.0.1 MYSQL_USER=root MYSQL_PASSWORD=your_local_test_password npm test
+npm run dev        # local development
+npm run typecheck  # TypeScript checks
+npm run build      # production build
+npm run start      # serve a production build
+npm test           # Playwright browser tests
 ```
 
-In PowerShell:
+Browser tests start a separate Go checkout, use a disposable MySQL test database and synthetic mail/key files. By default, the backend is expected at `../SSO-Paradise-Supply-Chain-Go`; override with `SSO_BACKEND_DIR`. Use `PLAYWRIGHT_CHANNEL=chrome` to run against installed Chrome, or install Playwright Chromium. Do **not** point tests at production or a shared database.
 
-```powershell
-$env:MYSQL_HOST = '127.0.0.1'
-$env:MYSQL_USER = 'root'
-$env:MYSQL_PASSWORD = 'your_local_test_password'
-npm test
-```
-
-The test account needs permission to create and drop databases because the backend's test helper creates an isolated schema per run. Use only disposable local or CI infrastructure. If a run is forcibly terminated before cleanup, inspect and remove only the test database with the matching `paradise_e2e_*` name on that test instance.
-
-GitHub Actions runs the type check, Playwright browser suite, and production build for pushes and pull requests targeting `develop` or `main`. The browser workflow checks out the backend's `develop` branch because that branch contains the isolated E2E database helper. GitHub reports the result as `Frontend checks / tests`; repository branch rules must require that check if it should block merging.
-
-## Production build and deployment
-
-The Dockerfile builds a standalone Next.js server and runs it on port `3000`. Build-time values matter: Next.js captures the API proxy destination and public-origin security-header policy when the image is built. Rebuild the image whenever those values change.
-
-Example using placeholder origins (replace them with the addresses reachable in your deployment network):
+For backend changes, also run from the sibling repository:
 
 ```bash
-docker build \
-  --build-arg API_ORIGIN=https://api.example.com \
-  --build-arg PUBLIC_URL=https://accounts.example.com \
-  --build-arg NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=YOUR_WALLETCONNECT_PROJECT_ID \
-  -t paradise-sso-frontend:local .
-
-docker run --rm -p 3000:3000 paradise-sso-frontend:local
+go test ./...
+go vet ./...
+go build ./cmd/api
 ```
 
-In a container network, `API_ORIGIN` must use a hostname and port reachable from the frontend container; `localhost` inside that container refers to the container itself. Configure the reverse proxy and API with the same intended public origins, HTTPS behavior, cookie policy, and allowed browser origin. The frontend does not include MySQL or Redis; deploy and operate those with the backend stack. Do not put backend secrets or signing keys in frontend build arguments or `NEXT_PUBLIC_*` variables.
+The browser layout checks include widths of **390**, **768** and **1440** pixels. Verify RTL layout, keyboard access, loading/error states, form validation and responsive behavior for UI changes. Run `npx prettier --check .` where formatting checks are applicable; use `npx prettier --write <changed-files>` to format only files you changed.
 
-## Security and compatibility notes
+## Docker and deployment
 
-- Keep passwords, API secrets, signing keys, and database credentials on the backend. Never add bearer tokens or session credentials to browser `localStorage`.
-- Preserve same-origin proxy behavior for browser requests and the backend's cookie, origin, CSRF, OAuth state, callback-validation, and PKCE rules.
-- Use HTTPS in production and rebuild when the public origin or API origin changes.
-- Treat callback URLs as untrusted input; the API validates clients and exact registered redirect URIs.
-- Use synthetic records in local and CI tests. Do not commit production screenshots, browser traces, database exports, `.env.local`, or user documents.
+Build from this frontend repository root, providing `API_ORIGIN`, `PUBLIC_URL` and `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` as build arguments according to `Dockerfile` and your deployment environment. The app serves port **3000** and needs network access to the Go API. Next.js captures the proxy destination and HTTPS header policy **at build time**: rebuild the image when these values change. HTTPS `PUBLIC_URL` enables HSTS.
 
-## Related repositories
+Use the provided `docker-compose.yml` as a starting point and consult the backend's `compose.yaml`, `compose.dokploy.yaml` and production runbook for full-stack deployment. Production uses HTTPS by default; the explicit HTTP-only option is described below. Keep stable securely provisioned keys, TLS SMTP and the backend worker where asynchronous mail is enabled. Never use development-generated keys or fixture accounts in production.
 
-- [Go SSO backend](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go)
-- [Original Laravel SSO](https://github.com/iranpsc/SSO-Paradise-Supply-Chain)
+### HTTP-only production
+
+For HTTP-only production, keep `NODE_ENV=production`, set `PUBLIC_URL=http://dev-accounts.irpsc.com` and `API_ORIGIN=http://apidev-accounts.irpsc.com`, and rebuild the frontend. The backend must keep `APP_ENV=production` and explicitly set `ALLOW_INSECURE_HTTP=true` with the same HTTP PUBLIC_URL. Disable HTTPS redirects and HSTS at the deployment proxy; browser HSTS already stored or inherited from a parent domain can still force HTTPS. HTTP does not encrypt passwords or session cookies. SMTP TLS and external-service HTTPS remain independently configured.
+
+## Related backend documentation
+
+- [Backend repository and setup](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go)
+- [Backend documentation directory](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go/tree/main/docs) — migration/import, feature audit, schema dictionary, local/CI setup, production runbook and test data.
+- [Backend environment template](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go/blob/main/.env.example)
+
+Backend responsibilities include versioned migrations, Laravel-compatible import, OAuth client management, durable mail delivery, cleanup jobs and authoritative MySQL persistence. Read its migration guide before importing any Laravel data: imports require an empty target and must leave the source read-only.
+
+## Contributing and security
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md) before submitting changes. Report suspected vulnerabilities privately using GitHub's repository security-reporting mechanism if enabled, or contact the maintainers privately; do not publish exploit details in a public issue.
+
+## License
+
+Distributed under the [MIT License](LICENSE).
