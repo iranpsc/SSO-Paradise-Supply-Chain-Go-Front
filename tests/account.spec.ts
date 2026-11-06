@@ -35,11 +35,18 @@ test("register, verify, edit, logout, login and recover a persisted account", as
   await page.getByLabel("نام", { exact: true }).fill("نام تازه");
   await page.getByRole("button", { name: "ذخیره تغییرات" }).click();
   await expect(page.getByRole("status")).toContainText("ذخیره شد");
+  const firstLogout = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/logout") &&
+      response.request().method() === "POST",
+  );
   await page
     .getByRole("button", { name: "خروج", exact: true })
     .filter({ visible: true })
     .click();
-  await expect(page).toHaveURL(/login/);
+  expect((await firstLogout).status()).toBe(200);
+  await expect(page).toHaveURL(/\/login$/);
+  expect((await page.request.get("http://localhost:3100/api/account")).status()).toBe(401);
   await page.getByLabel(/ایمیل/).fill(email);
   await page.getByLabel("رمز عبور", { exact: true }).fill("SecurePass!2026");
   await page.getByRole("button", { name: "ورود به حساب" }).click();

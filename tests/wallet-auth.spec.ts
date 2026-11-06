@@ -11,5 +11,6 @@ test("MetaMask connects, signs the server nonce and opens the authenticated acco
  await page.route("**/api/web3/nonce?*",route=>{expect(new URL(route.request().url()).searchParams.get("address")).toBe(address);return route.fulfill({json:{nonce}});});
  await page.route("**/api/web3/verify",async route=>{expect(route.request().postDataJSON()).toEqual({address,signature});signed=await page.evaluate(()=>sessionStorage.getItem("test:signed")??"");loggedIn=true;await route.fulfill({json:{message:"Authenticated successfully",redirect:"http://localhost:3100/home"}});});
  await page.goto("/login");await page.getByRole("button",{name:"ورود با MetaMask"}).click();await expect(page).toHaveURL(/\/home$/);
+ await page.goto("/account");await expect(page.getByText(address,{exact:true})).toBeVisible();
  expect(signed).toBe("0x"+Buffer.from(nonce,"utf8").toString("hex"));
 });
