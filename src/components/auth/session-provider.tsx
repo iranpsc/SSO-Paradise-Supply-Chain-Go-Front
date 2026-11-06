@@ -41,8 +41,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
   async function logout() {
-    await api("/logout", { method: "POST" });
+    try {
+      await api("/logout", { method: "POST" });
+    } catch (error) {
+      if (!(error instanceof ApiError && error.status === 401)) throw error;
+    }
     setUser(null);
+    setError("");
   }
   return (
     <Context.Provider
