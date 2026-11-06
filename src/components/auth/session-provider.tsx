@@ -30,8 +30,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       return data;
     } catch (error) {
       setUser(null);
-      if (!(error instanceof ApiError && error.status === 401))
-        setError(message(error));
+      setError(error instanceof ApiError && error.status === 401 ? "" : message(error));
       return null;
     } finally {
       setLoading(false);

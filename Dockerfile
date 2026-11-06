@@ -1,7 +1,9 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+ARG NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --registry="$NPM_CONFIG_REGISTRY" --fetch-retries=5 --no-audit --no-fund
 COPY . ./
 ARG API_ORIGIN=http://api:8080
 ARG PUBLIC_URL

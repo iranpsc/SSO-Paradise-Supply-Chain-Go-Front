@@ -20,8 +20,9 @@ export function WalletOptions({ mode, busy }: { mode: "login" | "register"; busy
   try {
    const result = await authenticateWallet(kind);
    const user = await refresh();
-   const intended = oauthReturnTo(params.get("return_to"));
+   const intended = oauthReturnTo(params.get("return_to") ?? sessionStorage.getItem("sso:return_to"));
    if (intended && !user?.email_verified_at) sessionStorage.setItem("sso:return_to", intended);
+   if (intended && user?.email_verified_at) sessionStorage.removeItem("sso:return_to");
    window.location.assign(user?.email_verified_at && intended ? intended : new URL(result.redirect, window.location.origin).pathname);
   } catch (error) { setNotice(message(error)); }
   finally { setPending(false); }

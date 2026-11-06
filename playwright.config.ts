@@ -2,7 +2,9 @@ import { defineConfig } from "@playwright/test";
 import path from "node:path";
 const run = (process.env.TEST_RUN_ID ??= Date.now().toString());
 const backendDirectory = path.resolve(process.env.SSO_BACKEND_DIR ?? "../SSO-Paradise-Supply-Chain-Go");
-process.env.MYSQL_DATABASE = `paradise_e2e_${run}_${process.pid}`;
+// Workers reload this config; keep the database created by the runner.
+process.env.MYSQL_DATABASE = (process.env.TEST_MYSQL_DATABASE ??=
+  `paradise_e2e_${run}_${process.pid}`);
 process.env.MYSQL_HOST ??= "127.0.0.1";
 const mailDirectory = path.resolve("test-results", `mail-${run}`);
 process.env.TEST_MAIL_DIRECTORY = mailDirectory;
