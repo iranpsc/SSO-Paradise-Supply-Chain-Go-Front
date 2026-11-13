@@ -92,6 +92,7 @@ for (const verified of [true, false]) {
       await page.goto(verification);
     }
     await expect(page).toHaveURL(/\/authorize$/);
+    await expect(page.getByText(callback, { exact: true })).toBeVisible();
     await page
       .getByRole("button", { name: "تأیید دسترسی", exact: true })
       .click();

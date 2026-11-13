@@ -68,6 +68,20 @@ export function OAuthConsent() {
             <p className="mt-5">
               سامانه «{consent.client.name}» درخواست اتصال به حساب شما را دارد.
             </p>
+            <p className="muted mt-3">نشانی‌های بازگشت مجاز این سامانه:</p>
+            <ul className="mt-2 space-y-2">
+              {consent.client.redirect_uris.map((uri) => (
+                <li key={uri}>
+                  <code dir="ltr" className="block break-all text-sm">
+                    {uri}
+                  </code>
+                </li>
+              ))}
+            </ul>
+            <p className="muted mt-3">
+              پس از تأیید، فقط به یکی از نشانی‌های ثبت‌شده بالا بازمی‌گردید.
+              اگر نام سامانه یا نشانی‌ها برایتان آشنا نیست، درخواست را رد کنید.
+            </p>
             {consent.scopes.length > 0 && (
               <p className="muted mt-3">
                 دسترسی‌ها: {consent.scopes.join("، ")}
