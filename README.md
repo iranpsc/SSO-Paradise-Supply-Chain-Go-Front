@@ -11,6 +11,7 @@ The independent, Persian RTL **Next.js frontend** for [SSO Paradise Supply Chain
 - [Quick start](#quick-start)
 - [Configuration](#configuration)
 - [Features and security boundaries](#features-and-security-boundaries)
+- [Third-party OAuth clients](#third-party-oauth-clients)
 - [Development and validation](#development-and-validation)
 - [Docker and deployment](#docker-and-deployment)
 - [Related backend documentation](#related-backend-documentation)
@@ -36,15 +37,15 @@ The frontend proxies requests to the Go service to preserve the browser-facing o
 
 ## Technology
 
-| Component | Version / role |
-| --- | --- |
-| Next.js | 16.3.8 |
-| React / React DOM | 19.3.0 |
-| TypeScript | 5.x |
-| Tailwind CSS | 4.3.3 |
-| WalletConnect Ethereum Provider | 2.23.10 |
-| Playwright | Browser / end-to-end tests |
-| Prettier | Formatting |
+| Component                       | Version / role             |
+| ------------------------------- | -------------------------- |
+| Next.js                         | 16.4.6                     |
+| React / React DOM               | 19.3.0                     |
+| TypeScript                      | 5.x                        |
+| Tailwind CSS                    | 4.3.3                      |
+| WalletConnect Ethereum Provider | 2.26.0                     |
+| Playwright                      | Browser / end-to-end tests |
+| Prettier                        | Formatting                 |
 
 Refer to `package.json` and `package-lock.json` for the authoritative installed versions.
 
@@ -103,10 +104,10 @@ In PowerShell, replace the copy command with `Copy-Item .env.example .env.local`
 
 Use `.env.example` as the canonical frontend template:
 
-| Variable | Purpose |
-| --- | --- |
-| `API_ORIGIN` | Reachable Go API origin for server-side proxying; default `http://127.0.0.1:8080` |
-| `PUBLIC_URL` | Exact browser-facing frontend origin; align with the backend's `PUBLIC_URL` |
+| Variable                               | Purpose                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------ |
+| `API_ORIGIN`                           | Reachable Go API origin for server-side proxying; default `http://127.0.0.1:8080`    |
+| `PUBLIC_URL`                           | Exact browser-facing frontend origin; align with the backend's `PUBLIC_URL`          |
 | `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` | WalletConnect project identifier exposed to the client; use an authorized project ID |
 
 Do not commit `.env.local`, passwords, private keys, production credentials, real user data or test-generated secrets. `NEXT_PUBLIC_*` values are public by design. Backend-only configuration (MySQL, Redis, mail, OAuth keys, Laravel import) belongs in the backend repository.
@@ -116,12 +117,17 @@ Do not commit `.env.local`, passwords, private keys, production credentials, rea
 The frontend provides Persian RTL account flows for registration, email/username login, remember-me, password confirmation/reset/change, signed email verification, profile editing, avatar/private-document uploads, MetaMask/WalletConnect sign-in and wallet linking, and OAuth authorization/consent. The backend implements and enforces the corresponding identity and authorization rules.
 
 - External/public OAuth clients initially require consent via `/authorize`. Like Laravel Passport, eligible confidential first-party clients and users with active access tokens for the same client covering the requested scopes skip this screen; `prompt=consent` forces confirmation. The OAuth password grant is disabled.
+- The consent screen shows the client's registered callback URIs before approval. The backend still validates the exact `redirect_uri` and only redirects to a URI registered for that client.
 - Login preserves the backend's local OAuth `return_to` request in tab session storage, including across registration, wallet login and email verification. Only a same-origin `/oauth/authorize` path is accepted; the backend validates the client callback again before issuing a code. This supports separate API and frontend domains without sharing backend flash cookies.
 - Signed verification links and session/cookie rules are validated by the backend. Do not bypass these flows in UI code.
 - Verification email is manually requested, with a 60-second cooldown retained across reloads.
 - Personal documents accept JPEG, PNG and WebP up to **2 MiB each**; avatars are limited to **1 MiB**. Client-side checks complement, never replace, server-side validation.
 - Do not log access/refresh tokens, cookies, wallet signatures, nonces, credentials or private documents. Do not persist tokens in `localStorage`.
 - Preserve same-origin proxy behavior and cookie handling when changing Next.js rewrites, headers or deployment topology.
+
+## Third-party OAuth clients
+
+Use the authorization-code flow with PKCE (`S256`) for every new client. The setup command, exact redirect matching rules, request/response examples, state validation, and current compatibility limits are documented in [docs/oauth-pkce.md](docs/oauth-pkce.md). Register clients in the Go backend; never put a confidential client secret in this frontend or in a browser/native app.
 
 ## Development and validation
 
@@ -157,6 +163,8 @@ For HTTP-only production, keep `NODE_ENV=production`, set `PUBLIC_URL=http://dev
 
 ## Related backend documentation
 
+- [OAuth 2.1-style integration guide](docs/oauth-pkce.md)
+- [Changelog](CHANGELOG.md) and [published GitHub Releases](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go-Front/releases)
 - [Backend repository and setup](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go)
 - [Backend documentation directory](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go/tree/main/docs) — migration/import, feature audit, schema dictionary, local/CI setup, production runbook and test data.
 - [Backend environment template](https://github.com/iranpsc/SSO-Paradise-Supply-Chain-Go/blob/main/.env.example)
