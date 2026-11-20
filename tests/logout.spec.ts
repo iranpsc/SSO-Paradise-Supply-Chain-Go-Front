@@ -6,7 +6,6 @@ test("an expired session during logout returns the user to login", async ({
   const user = {
     id: 1,
     name: "Signed in user",
-    username: "signed_in",
     email: "signed-in@example.com",
     code: "hm-2000001",
     wallet_address: null,

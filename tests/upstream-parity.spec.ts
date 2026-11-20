@@ -3,7 +3,6 @@ import { test, expect } from "@playwright/test";
 const user = {
   id: 1,
   name: "Test member",
-  username: "member",
   email: "member@example.com",
   code: null,
   wallet_address: null,

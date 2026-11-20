@@ -241,6 +241,43 @@ header [aria-label="باز کردن فهرست"] svg {
   border-radius: 11px;
   min-height: 50px;
 }
+.field-password-wrap {
+  position: relative;
+}
+.auth-card .field-password {
+  padding-right: 48px;
+}
+.field-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #65756b;
+  cursor: pointer;
+}
+.field-password-toggle:hover {
+  background: #183f330d;
+  color: #183f33;
+}
+.field-password-toggle:focus-visible {
+  outline: 2px solid var(--auth-accent);
+  outline-offset: 2px;
+}
+.field-password-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+.field-password-toggle svg {
+  width: 19px;
+  height: 19px;
+}
 .auth-card .field:focus {
   border-color: var(--auth-accent);
   --tw-ring-color: #087f7018;

@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 
 const user = {
-  id: 17, name: "Entry Test", username: "entry_test", email: "entry@example.test",
+  id: 17, name: "Entry Test", email: "entry@example.test",
   email_verified_at: "2026-10-25T10:00:00Z", created_at: "2026-10-25T10:00:00Z",
   code: "HM-17", wallet_address: null,
 };

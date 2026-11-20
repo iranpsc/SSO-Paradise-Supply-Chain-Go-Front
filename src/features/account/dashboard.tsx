@@ -32,6 +32,7 @@ const services = [
 ];
 export function Dashboard() {
   const { user } = useSession();
+  const displayName = user?.name?.trim() || user?.email?.split("@")[0];
   return (
     <RequireSession>
       <div className="space-y-7">
@@ -39,7 +40,7 @@ export function Dashboard() {
           <div>
             <p className="muted">پیشخوان حساب مرکزی</p>
             <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-              {user?.name}، خوش آمدید
+              {displayName}، خوش آمدید
             </h1>
             <p className="muted mt-3">
               حساب و مسیر دسترسی به سامانه‌ها، در یک نگاه.

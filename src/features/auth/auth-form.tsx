@@ -60,7 +60,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
   const [notice, setNotice] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
   const [values, setValues] = useState<RegistrationValues>({
-    username: "",
     name: "",
     email: params.get("email") ?? "",
     password: "",
@@ -135,7 +134,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
     setNotice("");
     setFields({});
     setValues({
-      username: "",
       name: "",
       email: params.get("email") ?? "",
       password: "",
@@ -183,7 +181,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
       Object.keys(validation).length > 0
     ) {
       setTouched({
-        username: true,
         name: true,
         email: true,
         password: true,
@@ -201,11 +198,7 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
  for(const key of ["redirect_uri","back_url"]){const value=params.get(key);if(value)payload[key]=value;}
  const client=params.get("client_id");if(client && /^\d+$/.test(client))payload.client_id=Number(client);
  }
-    if (mode === "login") {
-      payload.remember = payload.remember === "on";
- payload.login = payload.email;
-      delete payload.email;
-    }
+    if (mode === "login") payload.remember = payload.remember === "on";
     if (mode === "reset") payload.token = params.get("token") ?? "";
     try {
       const result = await api<{
@@ -330,26 +323,12 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
               {...inputProps("name")}
             />
           )}
-          {mode === "register" && (
-            <Field
-              label="نام کاربری"
-              name="username"
-              dir="ltr"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              maxLength={30}
-              required
-              error={fieldError("username")}
-              {...inputProps("username")}
-            />
-          )}
           <Field
-            label={mode === "login" ? "نام کاربری یا ایمیل" : "ایمیل"}
+            label="ایمیل"
             name="email"
-            type={mode === "login" ? "text" : "email"}
+            type="email"
             dir="ltr"
-            autoComplete={mode === "login" ? "username" : "email"}
+            autoComplete="email"
             autoCapitalize="none"
             spellCheck={false}
             maxLength={255}

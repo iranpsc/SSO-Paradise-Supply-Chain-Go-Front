@@ -2,7 +2,6 @@ import { errorMessage, persianMessage, responseMessage } from "./persian-message
 export type User = {
   wallet_address: string | null;
   id: number;
-  username: string;
   name: string;
   email: string;
   code: string | null;
