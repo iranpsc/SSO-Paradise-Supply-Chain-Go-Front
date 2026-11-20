@@ -1,5 +1,5 @@
 export type RegistrationValues = {
-  username: string;
+  name: string;
   email: string;
   password: string;
   password_confirmation: string;
@@ -62,13 +62,8 @@ export function loginErrors(
   values: Pick<RegistrationValues, "email" | "password">,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
-  const login = values.email.trim();
-  if (!login) errors.email = "نام کاربری یا ایمیل را وارد کنید.";
-  else if (login.includes("@")) {
-    const invalidEmail = emailError(login);
-    if (invalidEmail) errors.email = invalidEmail;
-  } else if (!/^[a-z][a-z0-9_]{2,29}$/i.test(login))
-    errors.email = "نام کاربری معتبر وارد کنید.";
+  const invalidEmail = emailError(values.email);
+  if (invalidEmail) errors.email = invalidEmail;
   if (!values.password) errors.password = "رمز عبور را وارد کنید.";
   return errors;
 }
@@ -77,9 +72,12 @@ export function registrationErrors(
   values: RegistrationValues,
 ): Record<string, string> {
   const errors: Record<string, string> = {};
-  if (!/^[a-z][a-z0-9_]{2,29}$/i.test(values.username.trim()))
-    errors.username =
-      "نام کاربری باید ۳ تا ۳۰ نویسه، با حرف انگلیسی آغاز و فقط شامل حروف انگلیسی، عدد و زیرخط باشد.";
+  const name = values.name.trim();
+  if (!name) errors.name = "نام را وارد کنید.";
+  else if (name.toLowerCase().startsWith("hm-"))
+    errors.name = "پیشوند رزروشدهٔ حساب‌های کیف پول مجاز نیست.";
+  else if (Array.from(name).length > 50)
+    errors.name = "نام حداکثر ۵۰ نویسه باشد.";
   const invalidEmail = emailError(values.email);
   if (invalidEmail) errors.email = invalidEmail;
   const rules = passwordRules(values.password, values.password_confirmation);

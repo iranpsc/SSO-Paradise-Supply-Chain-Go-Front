@@ -5,7 +5,6 @@ test.beforeEach(async ({ page }) => {
     route.fulfill({ status: 401, json: { message: "Unauthenticated" } }),
   );
   await page.goto("/register");
-  await page.locator('[name="username"]').fill("test_member");
 });
 
 test("password requirements appear on focus and track validity live", async ({

@@ -7,7 +7,7 @@ test("MetaMask connects, signs the server nonce and opens the authenticated acco
  if(input.method==="personal_sign"){sessionStorage.setItem("test:signed",input.params?.[0]??"");return signature;}
  throw new Error("Unexpected wallet method");
  }}});},{address,signature});
- await page.route("**/api/account",route=>route.fulfill(loggedIn?{json:{data:{id:1,name:"Wallet member",username:"",email:"",code:"hm-2000001",wallet_address:address,email_verified_at:new Date().toISOString(),created_at:new Date().toISOString()}}}:{status:401,json:{message:"Unauthenticated"}}));
+ await page.route("**/api/account",route=>route.fulfill(loggedIn?{json:{data:{id:1,name:"Wallet member",email:"",code:"hm-2000001",wallet_address:address,email_verified_at:new Date().toISOString(),created_at:new Date().toISOString()}}}:{status:401,json:{message:"Unauthenticated"}}));
  await page.route("**/api/web3/nonce?*",route=>{expect(new URL(route.request().url()).searchParams.get("address")).toBe(address);return route.fulfill({json:{nonce}});});
  await page.route("**/api/web3/verify",async route=>{expect(route.request().postDataJSON()).toEqual({address,signature});signed=await page.evaluate(()=>sessionStorage.getItem("test:signed")??"");loggedIn=true;await route.fulfill({json:{message:"Authenticated successfully",redirect:"http://localhost:3100/home"}});});
  await page.goto("/login");await page.getByRole("button",{name:"ورود با MetaMask"}).click();await expect(page).toHaveURL(/\/home$/);

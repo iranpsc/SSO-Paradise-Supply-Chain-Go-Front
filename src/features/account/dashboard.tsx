@@ -32,7 +32,7 @@ const services = [
 ];
 export function Dashboard() {
   const { user } = useSession();
-  const displayName = user?.name?.trim() || user?.username;
+  const displayName = user?.name?.trim() || user?.email?.split("@")[0];
   return (
     <RequireSession>
       <div className="space-y-7">

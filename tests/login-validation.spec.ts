@@ -12,7 +12,10 @@ test("login validates fields, blocks invalid submission and locks while sending"
   });
   let requests = 0;
   await page.route("**/api/login", async (route) => {
-    expect(route.request().postDataJSON().login).toBe("member_name");
+    const payload = route.request().postDataJSON();
+    expect(payload.email).toBe("member@example.com");
+    expect(payload.password).toBe("existing-password");
+    expect(payload.login).toBeUndefined();
     requests++;
     await pending;
     await route.fulfill({
@@ -27,6 +30,8 @@ test("login validates fields, blocks invalid submission and locks while sending"
   const submit = page.locator('button[type="submit"]');
   const email = page.locator('[name="email"]');
   const password = page.locator('[name="password"]');
+  await expect(page.locator('[name="username"]')).toHaveCount(0);
+  await expect(page.locator('[name="name"], [name="password_confirmation"]')).toHaveCount(0);
   await expect(submit).toBeDisabled();
   await expect(page.locator("#email-error")).toHaveCount(0);
   await email.click();
@@ -36,7 +41,7 @@ test("login validates fields, blocks invalid submission and locks while sending"
   await password.fill("existing-password");
   await expect(email).toHaveAttribute("aria-invalid", "true");
   await expect(submit).toBeDisabled();
-  await email.fill("member_name");
+  await email.fill("member@example.com");
   await expect(page.locator("#email-error")).toHaveCount(0);
   await expect(submit).toBeEnabled();
   await expect(page.locator("#password-requirements")).toHaveCount(0);

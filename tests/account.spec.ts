@@ -18,7 +18,6 @@ test("register, verify, edit, logout, login and recover a persisted account", as
   page.on("pageerror", (error) => errors.push(error.message));
  const email = `member-${Date.now()}@example.com`;
   await page.goto("/register");
-  await page.locator('[name="username"]').fill(`member_${Date.now()}`);
   await page.getByLabel("نام", { exact: true }).fill("کاربر آزمون");
   await page.getByLabel(/ایمیل/).fill(email);
   await page.getByLabel("رمز عبور", { exact: true }).fill("SecurePass!2026");

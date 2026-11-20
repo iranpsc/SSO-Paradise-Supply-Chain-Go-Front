@@ -32,11 +32,12 @@ test("wallet labels follow the entry mode and use loaded local logos", async ({
     await expect(
       page.getByRole("button", { name: `ثبت نام با ${name}` }),
     ).toBeVisible();
-  const username = page.getByLabel("نام کاربری", { exact: true });
-  await username.fill("1 invalid");
-  await expect(page.locator("#username-error")).toBeVisible();
-  await username.fill("member_name");
-  await expect(page.locator("#username-error")).toHaveCount(0);
+  await expect(page.locator('[name="username"]')).toHaveCount(0);
+  await expect(page.getByLabel("نام", { exact: true })).toHaveAttribute(
+    "required",
+    "",
+  );
+  await expect(page.locator(".auth-card form [name='email']")).toBeVisible();
   await page.getByRole("button", { name: "ثبت نام با MetaMask" }).click();
   await expect(page.locator(".wallet-notice")).toContainText("کیف پول وب۳ پیدا نشد");
   await page.locator('.auth-tabs a[href="/login"]').click();
