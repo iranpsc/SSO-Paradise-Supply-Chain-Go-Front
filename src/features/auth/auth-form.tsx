@@ -61,7 +61,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
   const [fields, setFields] = useState<Record<string, string>>({});
   const [values, setValues] = useState<RegistrationValues>({
     username: "",
-    name: "",
     email: params.get("email") ?? "",
     password: "",
     password_confirmation: "",
@@ -136,7 +135,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
     setFields({});
     setValues({
       username: "",
-      name: "",
       email: params.get("email") ?? "",
       password: "",
       password_confirmation: "",
@@ -184,7 +182,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
     ) {
       setTouched({
         username: true,
-        name: true,
         email: true,
         password: true,
         password_confirmation: true,
@@ -319,17 +316,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
           aria-busy={busy}
           noValidate={mode === "register" || mode === "login"}
         >
-          {mode === "register" && (
-            <Field
-              label="نام"
-              name="name"
-              autoComplete="name"
-              maxLength={50}
-              required
-              error={fieldError("name")}
-              {...inputProps("name")}
-            />
-          )}
           {mode === "register" && (
             <Field
               label="نام کاربری"
