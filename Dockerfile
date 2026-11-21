@@ -1,4 +1,4 @@
-FROM node:22-alpine AS build
+FROM docker.arvancloud.ir/node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 ARG NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
@@ -12,7 +12,7 @@ ARG NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 ENV API_ORIGIN=$API_ORIGIN
 ENV NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=$NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
 RUN npm run build
-FROM node:22-alpine
+FROM docker.arvancloud.ir/node:22-alpine
 WORKDIR /app
 ARG API_ORIGIN=http://api:8080
 ENV API_ORIGIN=$API_ORIGIN
