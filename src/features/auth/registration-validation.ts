@@ -1,5 +1,4 @@
 export type RegistrationValues = {
-  username: string;
   name: string;
   email: string;
   password: string;
@@ -79,9 +78,6 @@ export function registrationErrors(
 ): Record<string, string> {
   const errors: Record<string, string> = {};
   const name = values.name.trim();
-  if (!/^[a-z][a-z0-9_]{2,29}$/i.test(values.username.trim()))
-    errors.username =
-      "نام کاربری باید ۳ تا ۳۰ نویسه، با حرف انگلیسی آغاز و فقط شامل حروف انگلیسی، عدد و زیرخط باشد.";
   if (!name) errors.name = "نام را وارد کنید.";
   else if (Array.from(name).length > 50)
     errors.name = "نام حداکثر ۵۰ نویسه باشد.";

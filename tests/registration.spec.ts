@@ -5,7 +5,7 @@ test.beforeEach(async ({ page }) => {
     route.fulfill({ status: 401, json: { message: "Unauthenticated" } }),
   );
   await page.goto("/register");
-  await page.locator('[name="username"]').fill("test_member");
+  await expect(page.locator('[name="username"]')).toHaveCount(0);
 });
 
 test("password requirements appear on focus and track validity live", async ({
@@ -67,6 +67,7 @@ test("submission locks the form and renders server errors below inputs", async (
   let requests = 0;
   await page.route("**/api/register", async (route) => {
     requests++;
+    expect(route.request().postDataJSON()).not.toHaveProperty("username");
     await waiting;
     await route.fulfill({
       status: 422,
