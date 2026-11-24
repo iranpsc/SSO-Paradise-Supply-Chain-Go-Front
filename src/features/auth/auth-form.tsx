@@ -60,7 +60,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
   const [notice, setNotice] = useState("");
   const [fields, setFields] = useState<Record<string, string>>({});
   const [values, setValues] = useState<RegistrationValues>({
-    username: "",
     name: "",
     email: params.get("email") ?? "",
     password: "",
@@ -135,7 +134,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
     setNotice("");
     setFields({});
     setValues({
-      username: "",
       name: "",
       email: params.get("email") ?? "",
       password: "",
@@ -183,7 +181,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
       Object.keys(validation).length > 0
     ) {
       setTouched({
-        username: true,
         name: true,
         email: true,
         password: true,
@@ -328,20 +325,6 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
               required
               error={fieldError("name")}
               {...inputProps("name")}
-            />
-          )}
-          {mode === "register" && (
-            <Field
-              label="نام کاربری"
-              name="username"
-              dir="ltr"
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              maxLength={30}
-              required
-              error={fieldError("username")}
-              {...inputProps("username")}
             />
           )}
           <Field

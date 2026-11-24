@@ -39,7 +39,6 @@ for (const verified of [true, false]) {
     const registered = await page.request.post("/api/register", {
       headers: { Origin: "http://localhost:3100" },
       data: {
-        username: `oauth_${Date.now()}`,
         name: "OAuth Test",
         email,
         password,
