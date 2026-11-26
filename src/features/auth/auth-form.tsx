@@ -198,7 +198,10 @@ export function AuthForm({ mode: initialMode }: { mode: Mode }) {
  for(const key of ["redirect_uri","back_url"]){const value=params.get(key);if(value)payload[key]=value;}
  const client=params.get("client_id");if(client && /^\d+$/.test(client))payload.client_id=Number(client);
  }
-    if (mode === "login") payload.remember = payload.remember === "on";
+    if (mode === "login") {
+      payload.remember = payload.remember === "on";
+      payload.email = values.email.trim();
+    }
     if (mode === "reset") payload.token = params.get("token") ?? "";
     try {
       const result = await api<{

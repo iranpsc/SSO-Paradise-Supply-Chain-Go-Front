@@ -9,7 +9,7 @@ test("English API errors and validation fields never appear in the form", async 
     message: "Validation failed", errors: { email: ["The email field is invalid."] },
   } }));
   await page.goto("/login");
-  await page.locator('[name="email"]').fill("member_name");
+  await page.locator('[name="email"]').fill("member@example.test");
   await page.locator('[name="password"]').fill("TestPass!2026");
   await page.locator('button[type="submit"]').click();
   await expect(page.locator("#email-error")).toHaveText("مقدار واردشده برای این فیلد معتبر نیست.");

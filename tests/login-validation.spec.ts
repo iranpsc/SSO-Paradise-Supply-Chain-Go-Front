@@ -37,7 +37,7 @@ test("login validates fields, blocks invalid submission and locks while sending"
   await email.click();
   await password.click();
   await expect(page.locator("#email-error")).toBeVisible();
-  await email.fill("invalid name");
+  await email.fill("member_name");
   await password.fill("existing-password");
   await expect(email).toHaveAttribute("aria-invalid", "true");
   await expect(submit).toBeDisabled();
